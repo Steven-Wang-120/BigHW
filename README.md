@@ -1,6 +1,6 @@
 # VC-R-03 退货对账与差异处理系统
 
-> 2026-10-13 收工归档阶段：按用户授权进行真实本地文档存档，3张只读文档预览截图已保存；业务施工仍未授权、业务实现仍未开始。下文旧“未commit/无commit”仅为历史阶段状态；本次实际提交结果与时间以当日 `提交记录.txt` 为准。
+> 2026-10-13 最新状态（同日第二段）：用户已明确授权进入施工，B01 环境与骨架、B03 中不依赖配对策略的规则与测试已实现；`python -m pytest 测试` 实测 141 passed / 1 warning。B02 全量扫描、B04 配对（P-03 仍待确认）、B05–B11 仍未实现。下文旧“未commit/业务实现仍未开始”为历史阶段状态；实际提交结果与时间以当日 `提交记录.txt` 为准。
 
 > 2026-10-13 当前验收结论：本次准备与初步设计已由协调端完成验收；v7 Word 10页全部原尺寸PNG目视及协调端独立结构检查通过（exit0、PASS、errors=[]、warnings=[]）。下文旧v4/v5/v6和执行端待审阅记录为历史，不代表当前状态。业务施工/48TC未执行，配对策略仍推荐待确认。
 
@@ -21,9 +21,9 @@
 
 ## 实际目录与规划目录
 
-- `主程序/`：已建目录和 README；未来拟建 `cli.py`、`domain/`、`services/`、`repositories/`、`web/`，当前无业务源码。
-- `数据/raw/uci_online_retail_ii/`：已存在官方 zip/xlsx，原件不改；`processed/`未来放真实派生快照，`fixtures/`未来仅放Git白名单小型纯合成`controlled_cases.json`（本轮不创建），`runtime/`未来本地运行库；真实大数据与运行输出继续外置/忽略。
-- `测试/`：已建分层目录和 README；未来拟建测试文件，当前无测试实现。
+- `主程序/`：已建 `cli.py`、`domain/`（models/normalization/money）、`repositories/database.py`、`services/health_service.py`、`web/app.py`；`matching.py`/`states.py`/`permissions.py` 及导入、配对、权限、页面仍未实现。
+- `数据/raw/uci_online_retail_ii/`：已存在官方 zip/xlsx，原件不改；`processed/`未来放真实派生快照（未生成），`fixtures/controlled_cases.json` 为唯一 Git 白名单小型纯合成边界输入，`runtime/` 为本地运行库与本次证据；真实大数据与运行输出继续外置/忽略。
+- `测试/`：已建分层目录、`conftest.py`、`unit/test_money.py`、`unit/test_normalization.py`、`unit/test_models.py`、`integration/test_database.py`、`acceptance/test_bootstrap.py`、`run_checks.py`、`smoke_bootstrap.py`；B02/B04 及以后的测试仍未实现。
 - `文档/施工/`：B00-B11逐步施工计划；`文档/agent/`：C00-C04协作必读文件；`文档/研究/`：外部依据和契约。
 - `交付材料/`：设计说明、模板原件和打包指南；不替代课程规定的根固定文件名。
 - `参考资料/课程原件/`：保真课程原件与工具，不作为本项目业务实现。
@@ -37,10 +37,10 @@
 ## 当前状态和禁区
 
 - 已有原件和官方raw数据保留，不重下；manifest中的SHA256、实际表头和抽样边界不可静默改写。
-- 当前只写文档和设计说明，不新增 `.py/.js/.html/.css/.sql` 业务/测试文件，不创建空代码骨架，不运行课程脚本、不运行bypass、不声称服务或测试已跑通。
+- 用户已授权施工；当前实现了 bootstrap 层与 B03 部分规则，`python -m pytest 测试` 实测通过。仍未实现 B02 扫描快照、B04 配对、B05–B11；不声称服务已完成业务规则、不声称 48 条 TC 已执行。
 - 不制造两套财务/仓库事实数据；年度sheet只是同一流水的两张表，取消单没有真实原单外键。
 - 不伪造用户理由、第三条决定、提交、截图、多日日记或测试结果。`选题自查表.md`区分设计计数与实现/实测待验。
-- 根 `CLAUDE.md` 记录未来命令但明确尚不可用；Git若仅初始化也不等于已有课程存档。
+- 根 `CLAUDE.md` 记录真实可用命令与未实现项；Git 已有真实提交不等于课程全部材料已完成。
 
 ## 证据入口
 

@@ -1,12 +1,19 @@
 # 项目规矩
 
-> 2026-10-13 收工归档阶段：按用户授权进行真实本地文档存档，3张只读文档预览截图已保存；业务施工仍未授权、业务实现仍未开始。下文旧“未commit/无commit”仅为历史阶段状态；本次实际提交结果与时间以当日 `提交记录.txt` 为准。
+> 2026-10-13 最新状态（同日第二段）：用户已明确授权进入施工。已实现 B01 环境与骨架（`pyproject.toml`、`requirements.lock`、`主程序/cli.py`、`repositories/database.py`、`services/health_service.py`、`web/app.py`）与 B03 中不依赖配对策略的规则硬化及自动测试，实测 `python -m pytest 测试` = 141 passed / 1 warning。B02 扫描快照、B04 配对（P-03 待确认）、B05–B11 仍未实现。下文旧“未commit/业务实现仍未开始”为历史阶段状态；实际提交结果以当日 `提交记录.txt` 为准。
 
-当前阶段：详细设计准备，2026-10-13。用户本轮硬约束：只写文档/Word产物，不新增业务或测试实现、空代码骨架；源码清单只写Markdown。用户以后明确进入施工后才按B执行，此限制不是永久禁止代码。
+当前阶段：施工进行中（B01 已完成、B03 部分完成），2026-10-13。原“只写文档”硬约束已被用户本轮施工授权取代，不再是当前限制；配对策略未确认前不得实施 B04。
 
-## 未来启动方式 当前不可用
+## 启动方式（B01 已实现，真实可用）
 
-未来拟在兼容Python虚拟环境中安装根pyproject.toml与锁定依赖，通过 `python -m 主程序.cli init-db`、`python -m 主程序.cli prepare-snapshot`、`python -m 主程序.cli serve --host 127.0.0.1 --port 8000` 初始化/切片/启动；测试拟 `python -m pytest 测试`。这些文件/命令**尚不存在或未验证，不能现在宣称可用**。不需要Node/npm前端构建，不用React/Vue/Jinja；这不豁免以后B01对node/npm/claude/python/git、终端及课程provider配置的真实核验。课程工具环境与MARINA分开，不打印密钥，本轮不安装或修改global配置。实际命令由B01施工后校准README和锁定版本，不安装文档生成依赖到项目。
+在项目虚拟环境中按锁定依赖安装后：
+
+- `python -m 主程序.cli init-db` —— 显式初始化 bootstrap 库（幂等、不删库重建、拒绝未知库）；默认路径 `数据/runtime/bootstrap.sqlite3`。
+- `python -m 主程序.cli serve --host 127.0.0.1 --port 8000` —— 启动最小服务，仅 `/health` 只读校验 schema 与外键；不自动建库，需先 init-db；只允许回环地址。
+- `python -m 主程序.cli prepare-snapshot` —— **未实现**，退出码 2，不扫描任何数据。
+- `python -m pytest 测试` —— 已实测 141 passed / 1 warning。
+
+当前仅 bootstrap 层：无业务表、无导入/配对/权限/页面。B02 扫描快照与 B04 配对未实现，配对策略 P-03 待用户确认。不需要 Node/npm 前端构建，不用 React/Vue/Jinja；这不豁免对 node/npm/python/git 及课程 provider 配置的核验。课程工具环境与 MARINA 分开，不打印密钥，不修改 global 配置。
 
 ## 目录职责和阅读
 

@@ -1,0 +1,20 @@
+[project]
+name = "bighw"
+version = "0.1.0"
+description = "Local bootstrap and pure normalization rules for VC-R-03"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi==0.115.6",
+  "uvicorn==0.34.0",
+  "openpyxl==3.1.5",
+  "bcrypt==4.2.1",
+  "python-multipart==0.0.20",
+]
+
+[project.optional-dependencies]
+test = ["pytest==8.3.4", "httpx==0.28.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["测试"]
+pythonpath = ["."]
+addopts = "--strict-markers"
