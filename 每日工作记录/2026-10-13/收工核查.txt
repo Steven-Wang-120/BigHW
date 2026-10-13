@@ -1,0 +1,570 @@
+﻿VC-R-03 2026-10-13 收工核查（第一阶段；仅文档，不暂存/提交）
+实际本机开始时间：2026-10-13T13:36:17.645792+08:00
+实际本机结束时间：2026-10-13T13:36:19.271530+08:00
+UTC偏移：8:00:00；时区名称：中国标准时间
+工作目录：D:\Code\BigHW
+用途：课程当天过程记录，非业务运行/学生亲验/课程完整交付通过证明。
+
+一、范围与结果摘要
+第一阶段文档检查：PASS
+最终v7只读Word结构检查：PASS；exit=0；PDF页数=10；errors=[]；layout_warnings=[]
+协调端已完成v7 10页全页目视验收（来源：本次任务与README现行顶部验收说明）；本执行端未重新渲染或代做目视。
+业务施工未授权；业务代码未写；48条TC未执行；配对策略待确认。
+真实工作日目录：['2026-10-13']；数量=1，未达到课程至少8天，不伪造跨日。
+截图目录当前空，3项预定浏览器内容均待协调端保存；提交记录TXT未生成。
+本地user.name/email各查询exit1，均未设置；未来仅命令级自动化作者VC-R-03 AI辅助归档 / ai-archive@localhost，不修改global配置。
+Word/raw/课程原件/课程脚本前后bytes及SHA256不变：True
+Git索引不变且为空：True；git log仍无提交（exit128）：True
+精确日志忽略规则正确且当天截图/说明/TXT未被忽略：True
+未运行课程脚本、业务命令、业务测试或Git写操作；未查询任何无关global凭据。
+
+二、实际读取的文件与目录及计数（限本次相关范围，未重审全仓）
+根三规格实际存在数量=3：要做什么.md、怎么做.md、怎么算做对.md（仅读取FR与TC所在Markdown，不执行用例）
+实际读取要做什么.md中的FR表格主行数量=32
+实际读取测试/测试矩阵.md中的TC表格主行数量=48
+文档/施工中B*.md数量=12（仅列目录，不重读全部内容）：
+  文档\施工\B00-总计划.md
+  文档\施工\B01-环境与骨架.md
+  文档\施工\B02-数据扫描与切片.md
+  文档\施工\B03-存储与导入.md
+  文档\施工\B04-配对与差异.md
+  文档\施工\B05-派单与状态.md
+  文档\施工\B06-权限与并发.md
+  文档\施工\B07-网页与接口.md
+  文档\施工\B08-审计与导出.md
+  文档\施工\B09-测试与性能.md
+  文档\施工\B10-技能Hook与过程.md
+  文档\施工\B11-报告汇报打包现场.md
+文档/agent中C*.md数量=5（仅列目录）：
+  文档\agent\C00-必读顺序和阶段.md
+  文档\agent\C01-数据语义禁区.md
+  文档\agent\C02-编号接口协作变更.md
+  文档\agent\C03-测试证据真实性.md
+  文档\agent\C04-交接与审阅要求.md
+本阶段读写的入口/日记/忽略规则数量=5：
+  README.md
+  AGENTS.md
+  CLAUDE.md
+  .gitignore
+  每日工作记录/2026-10-13/今天做了什么.md
+只读参考：每日工作记录/2026-10-13/检查证据说明.md（旧生成阶段历史，不覆写为当前提交成功）。
+课程原件要求来源：D:\Code\BigHW\参考资料\课程原件\1-大作业说明书.docx Table16动作十 / Table29，原件由协调端已读，本执行端仅hash核验，不改写。
+只读checker：C:\Users\17088\AppData\Local\Temp\BigHW-design-20261013\check_word_v7_readonly.py；实际源码已读取，输出完整附于下节；读取现有v7 PDF、10张PNG与基线JSON，不重新渲染。
+当日目录实际列出文件数量=3：['今天做了什么.md', '当天归档说明.md', '检查证据说明.md']；本核查TXT保存后文件数量=4：['今天做了什么.md', '当天归档说明.md', '收工核查.txt', '检查证据说明.md']；子目录数量=1：['截图']；截图文件数量=0。
+
+三、原件与最终Word实际bytes / SHA256（批处理前后相同）
+D:\Code\BigHW\交付材料\设计说明\VC-R-03交付材料与系统设计说明.docx
+  bytes=50451
+  SHA256=D03357389A155C7599E614257921C2D9CB0605DC31683729AC58948112652FB0
+D:\Code\BigHW\数据\raw\uci_online_retail_ii\online+retail+ii.zip
+  bytes=45622418
+  SHA256=572E36277C2390FBFDE10664750731E0A86F55E33470D91919085F0408E67BFB
+D:\Code\BigHW\数据\raw\uci_online_retail_ii\online_retail_II.xlsx
+  bytes=45622278
+  SHA256=BCBE73B35F5B7BABF197FB0CB983A11F5D9FF929078D4AA53D171B1F2DF2E980
+D:\Code\BigHW\参考资料\课程原件\1-大作业说明书.docx
+  bytes=64943
+  SHA256=4498E10049F1D65EADCD0D39C62C5B6D796F1DE6522EE7678D12E114AC73F30C
+D:\Code\BigHW\6-打包提交.ps1
+  bytes=12025
+  SHA256=2A8B4859AA95657CC958BBE22502CCE21DA41680AC998E6F4F9DB1C5A19A517E
+D:\Code\BigHW\参考资料\课程原件\6-打包提交.ps1
+  bytes=12025
+  SHA256=2A8B4859AA95657CC958BBE22502CCE21DA41680AC998E6F4F9DB1C5A19A517E
+
+四、课程打包脚本只读核对
+根脚本与保真副本SHA256相同；第130–138行中第133行实际指令：
+Copy-Item $srcDaily (Join-Path $stage '04-每日工作记录') -Recurse -Force
+上述原样复制文件系统每日目录，不读.gitignore；将来生成的提交记录.txt也直接包含，不靠bundle提供。脚本本次未执行。
+
+五、实际执行命令、原始输出与退出码
+命令运行器：C:\Users\17088\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe C:\Users\17088\AppData\Local\Temp\BigHW-daily-20261013\archive_phase1.py；以下为真实subprocess返回结果；外层最终exit见本脚本末尾说明。
+[1] command: pwsh -NoProfile -NonInteractive -Command "[TimeZoneInfo]::Local | Select-Object Id,DisplayName,BaseUtcOffset | ConvertTo-Json -Compress"
+exit_code: 0
+stdout:
+{"Id":"China Standard Time","DisplayName":"(UTC+08:00) 北京，重庆，香港特别行政区，乌鲁木齐","BaseUtcOffset":{"Ticks":288000000000,"Days":0,"Hours":8,"Milliseconds":0,"Microseconds":0,"Nanoseconds":0,"Minutes":0,"Seconds":0,"TotalDays":0.3333333333333333,"TotalHours":8.0,"TotalMilliseconds":28800000.0,"TotalMicroseconds":28800000000.0,"TotalNanoseconds":28800000000000.0,"TotalMinutes":480.0,"TotalSeconds":28800.0}}
+stderr:
+(empty)
+
+[2] command: git --version
+exit_code: 0
+stdout:
+git version 2.53.0.windows.2
+stderr:
+(empty)
+
+[3] command: git config --local --get user.name
+exit_code: 1
+stdout:
+(empty)
+stderr:
+(empty)
+
+[4] command: git config --local --get user.email
+exit_code: 1
+stdout:
+(empty)
+stderr:
+(empty)
+
+[5] command: git ls-files --stage
+exit_code: 0
+stdout:
+(empty)
+stderr:
+(empty)
+
+[6] command: git -c core.quotepath=false status --short
+exit_code: 0
+stdout:
+?? .claude/
+?? .gitignore
+?? 6-打包提交.cmd
+?? 6-打包提交.ps1
+?? AGENTS.md
+?? CLAUDE.md
+?? README.md
+?? 主程序/
+?? 交付材料/
+?? 决定记录.md
+?? 参考资料/
+?? 怎么做.md
+?? 怎么算做对.md
+?? 数据/
+?? 文档/
+?? 材料清单.md
+?? 每日工作记录/
+?? 测试/
+?? 要做什么.md
+?? 选题自查表.md
+stderr:
+(empty)
+
+[7] command: git log -1 --format=fuller
+exit_code: 128
+stdout:
+(empty)
+stderr:
+fatal: your current branch 'main' does not have any commits yet
+
+[8] command: C:\Users\17088\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe C:\Users\17088\AppData\Local\Temp\BigHW-design-20261013\check_word_v7_readonly.py
+exit_code: 0
+stdout:
+{
+  "checked_at": "2026-10-13T13:36:19.039671+08:00",
+  "overall": "PASS",
+  "errors": [],
+  "scope": "v7 Word/PDF/PNG content and structural checks only; no business tests or repeat full repository audit",
+  "visual_review": "NOT_PERFORMED_BY_WORKER; coordinator to inspect every PNG",
+  "layout_warnings": [],
+  "page_ranges": [
+    {
+      "page": 1,
+      "characters": 869,
+      "section_start": "入口与说明用途",
+      "headings_on_page": [
+        "一 课程需要交哪些材料"
+      ],
+      "section_end": "一 课程需要交哪些材料",
+      "first": "VC-R-03 交付材料与系统设计说明 退货对账与差异处理系统",
+      "last": "软件编程中期材料须在 2026 年 10 月 22 日上课前交，最终材料在 11 月 17 日上机课前交。报告按课 程十节模板写，中期 3 至 5 页，最终 8 至 12 页；没有完成的实现和测试应如实写待验。"
+    },
+    {
+      "page": 2,
+      "characters": 660,
+      "section_start": "一 课程需要交哪些材料",
+      "headings_on_page": [],
+      "section_end": "一 课程需要交哪些材料",
+      "first": "材料 固定根名或来源 当前状态 报告 大作业报告.docx 未创建",
+      "last": "正式说明书要求至少 8 天真实日记，样例说明写 10 天的冲突已记录，采用正式 8 天口径。至少 10 真 实自动化用例、3 真实用户决定、2 反例及技能、Hook、子代理和审查证据都不能用计划数量替代。"
+    },
+    {
+      "page": 3,
+      "characters": 879,
+      "section_start": "一 课程需要交哪些材料",
+      "headings_on_page": [
+        "二 唯一流水与两层行数验算"
+      ],
+      "section_end": "二 唯一流水与两层行数验算",
+      "first": "二 唯一流水与两层行数验算 官方数据是 UCI Online Retail II。两张年度 sheet 分别是 Year 2009-2010 和 Year 2010-2011；它们",
+      "last": "不同源行即便内容完全相同也不能无声删除。标记疑似重复并抑制相关自动配对，保留行数和追溯。原 始 zip/xlsx 与课程原件永远不改；快照和库是另外的未来产物。"
+    },
+    {
+      "page": 4,
+      "characters": 983,
+      "section_start": "二 唯一流水与两层行数验算",
+      "headings_on_page": [
+        "三 金额口径与保守配对"
+      ],
+      "section_end": "三 金额口径与保守配对",
+      "first": "三 金额口径与保守配对 实测源 XML 单价存在二进制浮点尾差，不能直接用 float 求相等或只比较界面两位小数。建议以",
+      "last": "国家冲突或多个候选 报异常/歧义 不自动分配 唯一候选量不足或价差 数量不足/价差差异"
+    },
+    {
+      "page": 5,
+      "characters": 861,
+      "section_start": "三 金额口径与保守配对",
+      "headings_on_page": [
+        "四 模块 数据流与存储"
+      ],
+      "section_end": "四 模块 数据流与存储",
+      "first": "情况 主要结果 范围中无候选 当前范围未找到候选 范围外可能有原单",
+      "last": "ciliation_runs、match_allocations、differences、assignments、users、sessions、 audit_events。完整主外键、数量约束、枚举和索引见文字契约，本轮不创建SQL 或库。"
+    },
+    {
+      "page": 6,
+      "characters": 907,
+      "section_start": "四 模块 数据流与存储",
+      "headings_on_page": [
+        "五 原生网页和工单状态"
+      ],
+      "section_end": "五 原生网页和工单状态",
+      "first": "失败恢复与原子发布 pipeline 导入 SUCCESS 后，若对账运行失败，不回滚已成功导入的批次。错误保留",
+      "last": "差异列表 分页筛选 处理人仅本人 后端强制范围 差异详情 assign start close 候选 责任人 version 两状态"
+    },
+    {
+      "page": 7,
+      "characters": 1116,
+      "section_start": "五 原生网页和工单状态",
+      "headings_on_page": [
+        "六 测试与性能怎样验"
+      ],
+      "section_end": "六 测试与性能怎样验",
+      "first": "页面 主要操作 关键呈现 验算面板 GET imports/id/counts 原 N 与 10k 分母 互斥排除 差 0",
+      "last": "TC-01 至 TC-48 逐条写给定输入、动作、期望数值或错误、层次和证据目录。当前全部未执行，不能 把 48 条计划叫 48 条自动化通过。"
+    },
+    {
+      "page": 8,
+      "characters": 1028,
+      "section_start": "六 测试与性能怎样验",
+      "headings_on_page": [
+        "七 按什么顺序施工和留证"
+      ],
+      "section_end": "七 按什么顺序施工和留证",
+      "first": "受控边界与真实数据分开 F 纯合成 fixture 用于明确标注的单元/集成/并发/API/浏览器边界测试与教学演示，绝不当真实 R。未",
+      "last": "计划 施工产物 前置 B00 总计划 B01 环境 兼容 Python/lock/真实入口 施工授权"
+    },
+    {
+      "page": 9,
+      "characters": 1005,
+      "section_start": "七 按什么顺序施工和留证",
+      "headings_on_page": [],
+      "section_end": "七 按什么顺序施工和留证",
+      "first": "计划 施工产物 前置 B02 数据 B03 导入 全扫描 manifest/10k 快照/裁决库 原 SHA 一致",
+      "last": "交付正文；未来纯合成 fixture 白名单不是官方数据。bundle 只含已提交历史，R 按 URL/hash 另备。 打包替换、推送、外发及不可逆/越范围仍守授权，本轮不运行课程工具或 Bypass。"
+    },
+    {
+      "page": 10,
+      "characters": 1203,
+      "section_start": "七 按什么顺序施工和留证",
+      "headings_on_page": [
+        "八 设计优势 取舍与来源"
+      ],
+      "section_end": "八 设计优势 取舍与来源",
+      "first": "八 设计优势 取舍与来源 为什么选择这些边界",
+      "last": "依赖版本施工时选兼容组合、锁定并实测，不凭“最新”假定可运行。阅读根 README 找到完整规格 和来源 manifest，后续修订本文也必须重新渲染逐页检查。"
+    }
+  ],
+  "checks": {
+    "title": {
+      "pass": true,
+      "detail": "VC-R-03 交付材料与系统设计说明"
+    },
+    "no_fixed_page_or_transition_note": {
+      "pass": true,
+      "detail": "no fixed nine-page organization or coordinator transition note"
+    },
+    "pairing_example": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "decisions_pending": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "same_origin_architecture": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "environment": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "session": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "transport": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "recovery": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "numbers": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "git_fixture": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "course_status": {
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    "full_original_urls": {
+      "pass": true,
+      "detail": [
+        "https://archive.ics.uci.edu/dataset/502/online+retail+ii",
+        "https://doi.org/10.24432/C5CG6D",
+        "https://creativecommons.org/licenses/by/4.0/",
+        "https://docs.python.org/3/library/decimal.html",
+        "https://www.sqlite.org/lang_transaction.html",
+        "https://www.sqlite.org/lang_createtable.html",
+        "https://fastapi.tiangolo.com/tutorial/testing/",
+        "https://fastapi.tiangolo.com/tutorial/static-files/",
+        "https://openpyxl.readthedocs.io/en/stable/optimized.html"
+      ]
+    },
+    "nine_material_rows": {
+      "pass": true,
+      "detail": 9
+    },
+    "font_min_11pt": {
+      "pass": true,
+      "detail": {
+        "min_pt": 11.0,
+        "Normal_pt": 11.0
+      }
+    },
+    "chinese_styles_black_titles": {
+      "pass": true,
+      "detail": "Microsoft YaHei and black styles"
+    },
+    "table_borders": {
+      "pass": true,
+      "detail": 6
+    },
+    "no_title_decoration": {
+      "pass": true,
+      "detail": "no paragraph borders"
+    },
+    "Title_style_no_pBdr": {
+      "pass": true,
+      "detail": "Title style has no paragraph borders, not recolored"
+    },
+    "heading_style_chain_no_pBdr": {
+      "pass": true,
+      "detail": []
+    },
+    "Normal_spacing": {
+      "pass": true,
+      "detail": {
+        "after_pt": 5.0,
+        "line_multiple": 1.1791666666666667,
+        "line_twips": "283",
+        "note": "OOXML line spacing quantized to integer 240ths"
+      }
+    },
+    "content_unchanged": {
+      "pass": true,
+      "detail": "all text segments identical to reviewed v5 content"
+    },
+    "no_forced_chapter_breaks": {
+      "pass": true,
+      "detail": "all eight chapters flow continuously"
+    },
+    "heading_keep_with_next": {
+      "pass": true,
+      "detail": "headings remain with following content"
+    },
+    "repeat_table_headers": {
+      "pass": true,
+      "detail": "repeat table headers; table rows remain independently pageable"
+    },
+    "pdf_pages_without_fixed_target": {
+      "pass": true,
+      "detail": {
+        "pages": 10,
+        "text_characters_each": [
+          869,
+          660,
+          879,
+          983,
+          861,
+          907,
+          1116,
+          1028,
+          1005,
+          1203
+        ]
+      }
+    },
+    "all_page_pngs": {
+      "pass": true,
+      "detail": [
+        "v7-page-01.png",
+        "v7-page-02.png",
+        "v7-page-03.png",
+        "v7-page-04.png",
+        "v7-page-05.png",
+        "v7-page-06.png",
+        "v7-page-07.png",
+        "v7-page-08.png",
+        "v7-page-09.png",
+        "v7-page-10.png"
+      ]
+    },
+    "png_valid_dimensions": {
+      "pass": true,
+      "detail": [
+        {
+          "name": "v7-page-01.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 261015
+        },
+        {
+          "name": "v7-page-02.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 193599
+        },
+        {
+          "name": "v7-page-03.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 247862
+        },
+        {
+          "name": "v7-page-04.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 283519
+        },
+        {
+          "name": "v7-page-05.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 206479
+        },
+        {
+          "name": "v7-page-06.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 224908
+        },
+        {
+          "name": "v7-page-07.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 282491
+        },
+        {
+          "name": "v7-page-08.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 303220
+        },
+        {
+          "name": "v7-page-09.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 267542
+        },
+        {
+          "name": "v7-page-10.png",
+          "width": 935,
+          "height": 1210,
+          "bytes": 277975
+        }
+      ]
+    },
+    "old_versions_preserved": {
+      "pass": true,
+      "detail": "v4/v5 retained as history, no fixed v7 page count"
+    },
+    "no_sparse_text_pages": {
+      "pass": true,
+      "detail": []
+    }
+  },
+  "artifacts": {
+    "docx_path": "D:\\Code\\BigHW\\交付材料\\设计说明\\VC-R-03交付材料与系统设计说明.docx",
+    "docx_bytes": 50451,
+    "docx_sha256": "D03357389A155C7599E614257921C2D9CB0605DC31683729AC58948112652FB0",
+    "pdf_path": "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\design-qa-v7.pdf",
+    "pdf_bytes": 608398,
+    "pdf_sha256": "00E25617B82D1CD6951A3B76B630493F49F6E84F90625716D71C6C472830CE21",
+    "pdf_pages": 10,
+    "png_paths": [
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-01.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-02.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-03.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-04.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-05.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-06.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-07.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-08.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-09.png",
+      "D:\\Code\\BigHW\\测试\\evidence\\docx_render\\v7-page-10.png"
+    ]
+  }
+}
+stderr:
+(empty)
+
+[9] command: git ls-files --stage
+exit_code: 0
+stdout:
+(empty)
+stderr:
+(empty)
+
+[10] command: git log -1 --format=fuller
+exit_code: 128
+stdout:
+(empty)
+stderr:
+fatal: your current branch 'main' does not have any commits yet
+
+[11] command: git check-ignore --no-index -v 每日工作记录/2026-10-13/提交记录.txt
+exit_code: 0
+stdout:
+.gitignore:45:每日工作记录/**/提交记录.txt	"\346\257\217\346\227\245\345\267\245\344\275\234\350\256\260\345\275\225/2026-10-13/\346\217\220\344\272\244\350\256\260\345\275\225.txt"
+stderr:
+(empty)
+
+[12] command: git check-ignore --no-index -v 每日工作记录/2026-10-13/截图/待保存.png 每日工作记录/2026-10-13/当天归档说明.md 每日工作记录/2026-10-13/收工核查.txt
+exit_code: 1
+stdout:
+(empty)
+stderr:
+(empty)
+
+六、下一阶段（尚未完成）
+协调端marina-edge保存真实截图并返回实际路径 → 回填截图状态 → 一次真实本地文档提交 → git log生成当天提交记录.txt。
+当前不写未来hash/存档成功，不改Word/B/C历史，不伪造学生姓名、测试、截图或8日过程。
+本批处理完整验收退出码：0（末行写入完成后以同一码退出；真实工具结果为准）。

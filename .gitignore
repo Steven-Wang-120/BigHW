@@ -1,0 +1,45 @@
+# 原始及派生事实数据不入Git 保留目录说明
+数据/raw/**
+!数据/raw/**/
+!数据/raw/**/README.md
+!数据/raw/**/.gitkeep
+数据/processed/**
+!数据/processed/**/
+!数据/processed/**/README.md
+!数据/processed/**/.gitkeep
+数据/fixtures/**
+!数据/fixtures/**/
+!数据/fixtures/**/README.md
+!数据/fixtures/**/.gitkeep
+# 唯一未来小型纯合成边界输入白名单 绝不放真实流水
+!数据/fixtures/controlled_cases.json
+数据/runtime/**
+!数据/runtime/**/
+!数据/runtime/**/README.md
+!数据/runtime/**/.gitkeep
+# 独立文档渲染QA大文件
+测试/evidence/docx_render/
+# 环境 缓存 本机配置与秘密
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+.claude/settings.local.json
+外部配置/
+*.local.json
+~$*
+
+# 提交后由真实git log生成，避免自身hash递归；课程直接复制每日目录仍包含TXT
+每日工作记录/**/提交记录.txt
