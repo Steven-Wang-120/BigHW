@@ -147,6 +147,8 @@ class RowVerdict:
     amount_units: int | None
     invoice_datetime: datetime | None
     duplicate_key: tuple[str, ...] = field(default=(), repr=False)
+    product_category: str = "PRODUCT"
+    matching_eligible: bool = False
 
     @property
     def is_excluded(self) -> bool:

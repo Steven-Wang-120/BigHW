@@ -27,6 +27,7 @@ from 主程序.domain.models import (
     RawRow,
     RowVerdict,
 )
+from 主程序.domain.non_product import product_category
 from 主程序.domain.money import (
     NumericOverflowError,
     NumericParseError,
@@ -177,7 +178,7 @@ def classify_row(row: RawRow) -> RowVerdict:
     flags: list[str] = []
     formula_fields = {name for name, kind in row.cell_types.items() if kind == "f"}
     formula_fields.update(name for name in REQUIRED_FIELDS if isinstance(row.raw(name), str) and row.raw(name).lstrip().startswith("="))
-    if row.is_blank():
+    if row.is_blank() and not (row.has_formula or formula_fields):
         reasons.add("EMPTY_ROW")
     if row.has_formula or formula_fields:
         reasons.add("FORMULA_UNSUPPORTED")
@@ -232,6 +233,9 @@ def classify_row(row: RawRow) -> RowVerdict:
         flags.append(FLAG_MISSING_DESCRIPTION)
     if country is None:
         flags.append(FLAG_MISSING_COUNTRY)
+    category = product_category(row.raw("invoice"), row.raw("stockcode"))
+    if category != "PRODUCT":
+        flags.append("NON_PRODUCT")
     ordered = [code for code in EXCLUSION_PRIORITY if code in reasons]
     primary = ordered[0] if ordered else None
     flags = ordered[1:] + flags
@@ -246,6 +250,7 @@ def classify_row(row: RawRow) -> RowVerdict:
         customer_key=customer_key, country=country, description=description,
         quantity=quantity, price_units=price_units, amount_units=amount_units,
         invoice_datetime=invoice_dt, duplicate_key=duplicate_key,
+        product_category=category, matching_eligible=primary is None and category == "PRODUCT",
     )
 
 
