@@ -24,7 +24,7 @@ def test_bootstrap_app_lifespan_health_and_request_id(tmp_path):
     assert app.state.started is False
     with TestClient(app) as client:
         assert app.state.started is True
-        first = client.get("/health", headers={"X-Request-ID": str(path)})
+        first = client.get("/health", headers={"X-Request-ID": str(path).encode("utf-8")})
         second = client.get("/health")
         assert first.status_code == second.status_code == 200
         assert first.json()["schema_version"] == 1
@@ -58,6 +58,7 @@ def test_bootstrap_cli_direct_file_from_unrelated_cwd(tmp_path):
     env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
     path = tmp_path / "db.sqlite3"
     command = [sys.executable, str(PROJECT_ROOT / "主程序/cli.py")]
+    # B02 now exists; missing required --output remains argparse exit 2, not NOT_IMPLEMENTED.
     for args, expected in [(["--help"], 0), (["init-db", "--database", str(path)], 0), (["prepare-snapshot"], 2), (["not-a-command"], 2), (["serve", "--unknown"], 2)]:
         result = subprocess.run(command + args, cwd=tmp_path, env=env, capture_output=True, timeout=15)
         assert result.returncode == expected

@@ -27,6 +27,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--label", required=True)
     parser.add_argument("--evidence-root", type=Path, required=True)
+    parser.add_argument("--input-kind", default="pure-synthetic")
+    parser.add_argument("--input", type=Path, action="append", default=[])
+    parser.add_argument("--scope", default="B02/B03 only; matching and user verification not performed")
+    parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
@@ -39,12 +43,13 @@ def main():
     digest, sources = source_digest()
     base = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True, encoding="utf-8")
     status = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain"], capture_output=True, text=True, encoding="utf-8")
+    input_before = [{"path": str(p), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in args.input]
     start = datetime.now(timezone.utc).isoformat()
     clock = time.perf_counter()
     env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
     timed_out = False
     try:
-        result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, timeout=90)
+        result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, timeout=args.timeout)
     except subprocess.TimeoutExpired as exc:
         timed_out = True
         result = subprocess.CompletedProcess(command, 124, exc.stdout or b"", exc.stderr or b"")
@@ -56,14 +61,17 @@ def main():
     metadata = {
         "label": args.label, "command": command, "cwd": str(ROOT), "started_at": start,
         "finished_at": end, "duration_seconds": elapsed, "exit_code": result.returncode, "timed_out": timed_out,
-        "fixture_kind": "pure-synthetic", "fixture_sha256": hashlib.sha256((ROOT / "数据/fixtures/controlled_cases.json").read_bytes()).hexdigest(),
-        "normalization_version": "original-uncommitted" if "baseline" in args.label else "normalization-v0.1-hardened",
+        "input_kind": args.input_kind,
+        "input_files": [{"path": str(p), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in args.input],
+        "input_files_before": input_before,
+        "fixture_sha256": hashlib.sha256((ROOT / "数据/fixtures/controlled_cases.json").read_bytes()).hexdigest(),
+        "normalization_version": "normalization-v0.1-hardened" if "baseline" in args.label else "normalization-v0.2-teacher",
         "base_commit": base.stdout.strip(), "git_status": status.stdout,
         "source_tree_digest": digest, "source_files": sources, "python": sys.version,
         "executable": sys.executable, "platform": platform.platform(), "machine": platform.machine(),
         "processor": platform.processor(), "cpu_count": os.cpu_count(),
         "dependencies": {d.metadata["Name"]: d.version for d in importlib.metadata.distributions()},
-        "scope": "B01 bootstrap and scoped synthetic domain tests only; no complete TC-15/16/18/21/22/41/48, matching or real-data validation",
+        "scope": args.scope,
     }
     (output / "result.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
     print(result.stdout.decode("utf-8", errors="replace"), end="")
