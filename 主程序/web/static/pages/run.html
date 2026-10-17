@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VC-R-03 对账摘要</title><link rel="stylesheet" href="/static/css/counts.css"></head>
-<body><main><h1>VC-R-03 保守配对摘要</h1><p class="notice">本地只读聚合证据，不显示交易行。配对为规则推断，不代表真实原单或准确率；工单、登录、权限与正式POST_RUNS尚未完成。</p>
+<body><main><h1>VC-R-03 保守配对摘要</h1><p class="notice">本页为旧版本只读聚合证据，不显示交易行。配对为规则推断，不代表真实原单或准确率；当前v4业务入口具备登录、角色权限、工单与正式POST_RUNS，旧聚合接口不提供这些操作。</p>
 <label for="run">已完成run_id</label><input id="run" autocomplete="off"><button id="load">读取摘要</button><p id="status" role="status"></p>
 <section><h2>商品取消三分类与整体覆盖</h2><pre id="coverage"></pre></section>
 <section><h2>取消数量与金额守恒</h2><pre id="conservation"></pre><p>quantity与amount_units为十进制整数字符串；金额单位£0.0001，不用JS浮点对账。</p></section>
-<section><h2>批次、规则与范围</h2><pre id="rule"></pre><a id="counts">查看该批次导入事实</a><p>当前范围未找到候选，范围外可能存在。截断只有聚合风险；行级TRUNCATED_INVOICE_RANGE尚未实现。</p></section>
+<section><h2>批次、规则与范围</h2><pre id="rule"></pre><a id="counts">查看该批次导入事实</a><p>当前范围未找到候选，范围外可能存在。本页仅提供聚合范围说明，不展示行级数据；行级TRUNCATED_INVOICE_RANGE标记由v2质量清单及v4授权页面提供，旧快照的行级质量可为未知，不能据此视为无标记。</p></section>
 </main><script src="/static/js/run.js"></script></body></html>

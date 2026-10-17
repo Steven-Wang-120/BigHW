@@ -13,11 +13,16 @@ def now():
 
 
 def require_business(connection):
-    if connection.execute("PRAGMA user_version").fetchone()[0] not in {2, 3}:
+    if connection.execute("PRAGMA user_version").fetchone()[0] not in {2, 3, 4}:
         raise InputError("SCHEMA_UPGRADE_REQUIRED", 409)
 
 
-def audit(connection, batch_id, action, outcome, code=None, summary=None):
+def audit(connection, batch_id, action, outcome, code=None, summary=None, *, context=None):
+    if context is not None:
+        from 主程序.repositories.audit_repository import append
+        append(connection, context.actor.id, context.request_id, "import_batch", batch_id,
+               action, outcome, code=code, after=summary)
+        return
     try:
         connection.execute("INSERT INTO audit_events VALUES (?,?,?,?,?,?,?,?,?,?)",
                            (uuid4().hex, None, batch_id, "import_batch", batch_id, action, outcome, code,
@@ -38,6 +43,11 @@ def register(connection, manifest, full, digest):
     if existing and existing[0] != digest:
         raise InputError("MANIFEST_MISMATCH")
     if not existing:
+        # Historical strict v2-v4 schema has a UNIQUE CSV hash. Do not migrate
+        # implicitly or replace an old snapshot just to add quality evidence.
+        same_csv = connection.execute('SELECT id FROM snapshots WHERE sha256=?', (manifest['csv_sha256'],)).fetchone()
+        if same_csv:
+            raise InputError('SNAPSHOT_CONTENT_ALREADY_REGISTERED', 409, existing_snapshot_id=same_csv[0])
         connection.execute("INSERT INTO snapshots VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                            (manifest["snapshot_id"], source_id, manifest["sheet"], manifest["start_row"], manifest["end_row"],
                             manifest["csv_sha256"], manifest["selection_version"], manifest["selected_count"], manifest["outside_count"], digest, json_text(manifest)))
@@ -73,16 +83,20 @@ def insert_rows(connection, batch_id, raw_rows, cells, verdicts):
     connection.executemany("INSERT INTO import_rows VALUES (" + ",".join("?" for _ in range(21)) + ")", records)
 
 
-def finish_batch(connection, batch_id, counts):
-    connection.execute("UPDATE import_batches SET status='SUCCESS', counts_json=?, finished_at=? WHERE id=? AND status='IMPORTING'",
-                       (json_text(counts), now(), batch_id))
-    audit(connection, batch_id, "IMPORT", "SUCCESS", summary=counts)
+def finish_batch(connection, batch_id, counts, *, context=None):
+    changed = connection.execute("UPDATE import_batches SET status='SUCCESS', counts_json=?, finished_at=? WHERE id=? AND status='IMPORTING'",
+                                (json_text(counts), now(), batch_id))
+    if changed.rowcount != 1:
+        raise InputError("IMPORT_STATE_CONFLICT", 409)
+    audit(connection, batch_id, "IMPORT", "SUCCESS", summary=counts, context=context)
 
 
-def fail_batch(connection, batch_id, code):
-    connection.execute("UPDATE import_batches SET status='FAILED',error_code=?,finished_at=? WHERE id=? AND status='IMPORTING'",
-                       (code, now(), batch_id))
-    audit(connection, batch_id, "IMPORT", "FAILED", code)
+def fail_batch(connection, batch_id, code, *, context=None):
+    changed = connection.execute("UPDATE import_batches SET status='FAILED',error_code=?,finished_at=? WHERE id=? AND status='IMPORTING'",
+                                (code, now(), batch_id))
+    if changed.rowcount != 1:
+        raise InputError("IMPORT_STATE_CONFLICT", 409)
+    audit(connection, batch_id, "IMPORT", "FAILED", code, context=context)
 
 
 def batch_counts_data(connection, batch_id):

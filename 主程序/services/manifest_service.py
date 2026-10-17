@@ -8,8 +8,10 @@ import re
 
 from 主程序.domain.models import RawRow, SOURCE_FIELDS, SourceRowRef, ROW_CLASSES, EXCLUSION_PRIORITY
 from 主程序.domain.non_product import NON_PRODUCT_CODES
+from 主程序.domain.normalization import normalize_invoice
+from 主程序.services.snapshot_service import invoice_range_quality
 from 主程序.repositories.xlsx_reader import InputError, WorkbookReader, blank_row, SHEETS, HEADERS
-from 主程序.services.snapshot_service import CSV_COLUMNS, SCAN_VERSION, SELECTION_VERSION, json_text, sha256, validate_source
+from 主程序.services.snapshot_service import CSV_COLUMNS, SCAN_VERSION, SELECTION_VERSION, SELECTION_VERSION_V2, QUALITY_VERSION, json_text, sha256, validate_source
 
 CELL_TYPES = {"absent", "f", "n", "s", "inlineStr", "str", "b", "e", "d"}
 CATEGORIES = NON_PRODUCT_CODES | {"PRODUCT", "GIFT_VOUCHER", "A_BAD_DEBT_INVOICE"}
@@ -97,9 +99,15 @@ def validate_aggregate(value):
 
 
 def validate_manifest(manifest):
-    object_fields(manifest, ("snapshot_id", "scan_version", "selection_version", "source_sha256", "source_bytes",
-                             "excel_epoch", "sheet", "start_row", "end_row", "original_total", "selected_count", "outside_count",
-                             "csv_filename", "csv_sha256", "csv_columns", "full_scan_sha256", "truncation"))
+    require(type(manifest) is dict)
+    base_fields = ("snapshot_id", "scan_version", "selection_version", "source_sha256", "source_bytes",
+                   "excel_epoch", "sheet", "start_row", "end_row", "original_total", "selected_count", "outside_count",
+                   "csv_filename", "csv_sha256", "csv_columns", "full_scan_sha256", "truncation")
+    if manifest.get("selection_version") == SELECTION_VERSION_V2:
+        object_fields(manifest, (*base_fields, 'manifest_version', 'quality'))
+        require(type(manifest['manifest_version']) is int and manifest['manifest_version'] == 2)
+    else:
+        object_fields(manifest, base_fields)
     for name in ("snapshot_id", "source_sha256", "csv_sha256", "full_scan_sha256"):
         digest(manifest[name])
     for name in ("scan_version", "selection_version", "sheet", "csv_filename"):
@@ -112,12 +120,15 @@ def validate_manifest(manifest):
     integer(manifest["outside_count"])
     require(type(manifest["csv_columns"]) is list and all(type(k) is str for k in manifest["csv_columns"]))
     truncation = manifest["truncation"]
-    object_fields(truncation, ("boundary_invoice_outside_rows", "boundary_invoice_time_outside_rows", "warning", "scope"))
+    object_fields(truncation, ("boundary_invoice_outside_rows", "boundary_invoice_time_outside_rows", "warning", "scope", "quality_version") if manifest["selection_version"] == SELECTION_VERSION_V2 else ("boundary_invoice_outside_rows", "boundary_invoice_time_outside_rows", "warning", "scope"))
     integer(truncation["boundary_invoice_outside_rows"])
     integer(truncation["boundary_invoice_time_outside_rows"])
     require(type(truncation["warning"]) is bool and truncation["warning"] == bool(truncation["boundary_invoice_outside_rows"]))
     require(truncation["boundary_invoice_time_outside_rows"] <= truncation["boundary_invoice_outside_rows"])
     require(truncation["scope"] == "current source range only")
+    if manifest["selection_version"] == SELECTION_VERSION_V2:
+        object_fields(manifest['quality'], ('quality_version', 'row_flags', 'row_flag_counts', 'verified_invoice_identity_count', 'verified_outside_invoice_identity_count', 'scope', 'quality_digest'))
+        require(truncation.get("quality_version") == manifest["quality"]["quality_version"])
 
 
 def validate_full(full):
@@ -177,8 +188,26 @@ def verify_snapshot(directory: Path, source: Path, trusted_digest: str, expected
             raise InputError("MANIFEST_MISMATCH")
     if manifest["source_sha256"] != expected_sha or manifest["source_bytes"] != Path(source).stat().st_size:
         raise InputError("SOURCE_HASH_MISMATCH")
-    if manifest["scan_version"] != SCAN_VERSION or manifest["selection_version"] != SELECTION_VERSION:
-        raise InputError("MANIFEST_MISMATCH")
+    require(manifest["selection_version"] in {SELECTION_VERSION, SELECTION_VERSION_V2})
+    if manifest["selection_version"] == SELECTION_VERSION_V2:
+        quality = manifest["quality"]
+        object_fields(quality, ("quality_version", "row_flags", "row_flag_counts", "verified_invoice_identity_count", "verified_outside_invoice_identity_count", "scope", "quality_digest"))
+        require(quality["quality_version"] == QUALITY_VERSION)
+        object_fields(quality["row_flags"], ("TRUNCATED_INVOICE_RANGE",))
+        object_fields(quality["row_flag_counts"], ("TRUNCATED_INVOICE_RANGE",))
+        require(type(quality["row_flags"]["TRUNCATED_INVOICE_RANGE"]) is list and all(type(row) is int and manifest["start_row"] <= row <= manifest["end_row"] for row in quality["row_flags"]["TRUNCATED_INVOICE_RANGE"]))
+        integer(quality["row_flag_counts"]["TRUNCATED_INVOICE_RANGE"])
+        require(quality["row_flag_counts"]["TRUNCATED_INVOICE_RANGE"] == len(quality["row_flags"]["TRUNCATED_INVOICE_RANGE"]))
+        numbers = quality['row_flags']['TRUNCATED_INVOICE_RANGE']
+        require(numbers == sorted(set(numbers)))
+        integer(quality['verified_invoice_identity_count'])
+        integer(quality['verified_outside_invoice_identity_count'])
+        require(quality['verified_outside_invoice_identity_count'] <= quality['verified_invoice_identity_count'] <= manifest['selected_count'])
+        require(quality['scope'] == 'same sheet selected non-empty normalized invoice identities')
+        require(quality['row_flag_counts']['TRUNCATED_INVOICE_RANGE'] == len(numbers))
+        digest(quality["quality_digest"])
+        quality_copy = dict(quality); quality_copy.pop("quality_digest")
+        require(quality["quality_digest"] == hashlib.sha256(json_text(quality_copy).encode()).hexdigest())
     if manifest["csv_filename"] != "retail_2010_rows_2_10001.csv" or manifest["csv_columns"] != list(CSV_COLUMNS):
         raise InputError("HEADER_MISMATCH")
     total = sum(s["last_value_row"] - 1 for s in full["sheets"].values())
@@ -240,4 +269,5 @@ def verify_snapshot(directory: Path, source: Path, trusted_digest: str, expected
             expected_values = {k: v if v not in (None, "") else None for k, v in row.values.items()}
             if dict(raw.values) != expected_values or dict(raw.cell_types) != row.types or raw.has_formula != row.has_formula or cells != row.cells:
                 raise InputError("SOURCE_VALUE_MISMATCH")
-    return manifest, full, raw_rows, cells_list
+    quality_rows = set(manifest.get("quality", {}).get("row_flags", {}).get("TRUNCATED_INVOICE_RANGE", []))
+    return manifest, full, raw_rows, cells_list, quality_rows

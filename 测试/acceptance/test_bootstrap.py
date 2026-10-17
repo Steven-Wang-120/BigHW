@@ -89,7 +89,7 @@ def test_bootstrap_cli_serve_is_single_worker_and_requires_explicit_init(tmp_pat
     assert calls == []
     assert main(["init-db", "--database", str(path)]) == 0
     assert main(["serve", "--database", str(path)]) == 0
-    assert calls == [{"host": "127.0.0.1", "port": 8000, "workers": 1, "loop": "asyncio", "http": "h11", "ws": "none"}]
+    assert calls == [{"host": "127.0.0.1", "port": 8000, "workers": 1, "loop": "asyncio", "http": "h11", "ws": "none", "access_log": False}]
 
 
 def test_bootstrap_cli_relative_path_is_project_relative(tmp_path, monkeypatch):

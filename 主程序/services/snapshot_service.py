@@ -12,7 +12,7 @@ import tempfile
 import time
 import zipfile
 
-from 主程序.domain.models import SOURCE_FIELDS
+from 主程序.domain.models import SOURCE_FIELDS, QUALITY_VERSION_V2
 from 主程序.domain.serialization import json_text
 from 主程序.domain.normalization import classify_row, normalize_invoice, serial_to_datetime
 from 主程序.domain.non_product import NORMALIZATION_VERSION
@@ -22,6 +22,8 @@ SOURCE_SHA = "bcbe73b35f5b7babf197fb0cb983a11f5d9ff929078d4aa53d171b1f2df2e980"
 ZIP_SHA = "572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb"
 SCAN_VERSION = "zip-xml-v1"
 SELECTION_VERSION = "source-position-v1"
+QUALITY_VERSION = QUALITY_VERSION_V2
+SELECTION_VERSION_V2 = "source-position-v2-quality"
 CSV_COLUMNS = ("source_sha256", "sheet", "source_row", *SOURCE_FIELDS, "cell_types", "cells", "has_formula", "excel_epoch")
 
 
@@ -143,8 +145,24 @@ class Aggregate:
                 "a_stock_prefix_product": self.a_stock_product}
 
 
+def invoice_range_quality(invoices, outside_invoices):
+    """Only source-position facts; no verdicts, lots or candidate results."""
+    selected = set(invoices.values()) - {None}
+    truncated = sorted(number for number, invoice in invoices.items() if invoice is not None and invoice in outside_invoices)
+    quality = {"quality_version": QUALITY_VERSION, "row_flags": {"TRUNCATED_INVOICE_RANGE": truncated},
+               "row_flag_counts": {"TRUNCATED_INVOICE_RANGE": len(truncated)},
+               "verified_invoice_identity_count": len(selected),
+               "verified_outside_invoice_identity_count": len(selected & outside_invoices),
+               "scope": "same sheet selected non-empty normalized invoice identities"}
+    quality["quality_digest"] = hashlib.sha256(json_text({**quality}).encode()).hexdigest()
+    return quality
+
+
 def prepare_snapshot(source: Path, output: Path, *, archive: Path | None = None,
-                     expected_sha: str = SOURCE_SHA, selection=(SHEETS[1], 2, 10001)):
+                     expected_sha: str = SOURCE_SHA, selection=(SHEETS[1], 2, 10001),
+                     quality_version: str | None = None):
+    if quality_version not in (None, QUALITY_VERSION):
+        raise InputError("QUALITY_VERSION_UNSUPPORTED")
     source, output = Path(source), Path(output)
     if output.exists():
         raise InputError("OUTPUT_ALREADY_EXISTS", 409)
@@ -191,17 +209,27 @@ def prepare_snapshot(source: Path, output: Path, *, archive: Path | None = None,
                                 "headers": list(HEADERS), "aggregate": aggregate.result()}
         if len(selected_rows) != end - start + 1:
             raise InputError("SELECTION_OUTSIDE_SOURCE")
-        # A second streaming pass inspects only the boundary invoices/lot keys, not precomputed matches.
+        # Preserve the v1 boundary aggregate meaning; v2 adds independent exact
+        # selected-row evidence, never replacing outside counts with inside counts.
         boundary = {normalize_invoice(r.values["invoice"]) for r in (selected_rows[0], selected_rows[-1])} - {None}
         boundary_lots = {(normalize_invoice(r.values["invoice"]), str(r.values["invoicedate_serial"]))
                          for r in (selected_rows[0], selected_rows[-1])}
+        invoices = {row.number: normalize_invoice(row.values["invoice"]) for row in selected_rows}
+        quality = None
         outside_invoice = outside_lot = 0
+        outside_invoices = set()
+        selected_invoices = set(invoices.values()) - {None}
         with WorkbookReader(source) as workbook:
             for row in workbook.rows(sheet_selected):
-                if row.number < start or row.number > end:
+                if row.number >= 2 and (row.number < start or row.number > end):
                     inv = normalize_invoice(row.values["invoice"])
                     outside_invoice += inv in boundary
                     outside_lot += (inv, str(row.values["invoicedate_serial"])) in boundary_lots
+                    if inv in selected_invoices:
+                        outside_invoices.add(inv)
+        if quality_version is not None:
+            quality = invoice_range_quality(invoices, outside_invoices)
+
         with csv_path.open("w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, CSV_COLUMNS, lineterminator="\n")
             writer.writeheader()
@@ -215,14 +243,20 @@ def prepare_snapshot(source: Path, output: Path, *, archive: Path | None = None,
                 "method": "complete ZIP/XML values and positions; dimension unused", "sheets": scans,
                 "original_total": total, "headers": list(HEADERS)}
         (temp / "full_scan.json").write_text(json_text(full) + "\n", encoding="utf-8")
-        manifest = {"scan_version": SCAN_VERSION, "selection_version": SELECTION_VERSION,
+        truncation = {"boundary_invoice_outside_rows": outside_invoice, "boundary_invoice_time_outside_rows": outside_lot,
+                      "warning": bool(outside_invoice), "scope": "current source range only"}
+        if quality is not None:
+            truncation["quality_version"] = QUALITY_VERSION
+        manifest = {"scan_version": SCAN_VERSION, "selection_version": SELECTION_VERSION_V2 if quality is not None else SELECTION_VERSION,
                     "source_sha256": expected_sha, "source_bytes": source.stat().st_size,
                     "excel_epoch": epoch, "sheet": sheet_selected, "start_row": start, "end_row": end,
                     "original_total": total, "selected_count": len(selected_rows), "outside_count": total - len(selected_rows),
                     "csv_filename": csv_path.name, "csv_sha256": sha256(csv_path), "csv_columns": list(CSV_COLUMNS),
                     "full_scan_sha256": sha256(temp / "full_scan.json"),
-                    "truncation": {"boundary_invoice_outside_rows": outside_invoice, "boundary_invoice_time_outside_rows": outside_lot,
-                                   "warning": bool(outside_invoice), "scope": "current source range only"}}
+                    "truncation": truncation}
+        if quality is not None:
+            manifest["manifest_version"] = 2
+            manifest["quality"] = quality
         manifest["snapshot_id"] = hashlib.sha256(json_text(manifest).encode()).hexdigest()
         (temp / "snapshot_10k.json").write_text(json_text(manifest) + "\n", encoding="utf-8")
         validate_source(source, archive, expected_sha)

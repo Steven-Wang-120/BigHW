@@ -1,10 +1,11 @@
-"""B04 local orchestration; no authenticated POST runs or workflow API yet."""
+"""Shared reconciliation orchestration; optional authenticated HTTP write context."""
 
 from pathlib import Path
 
 from 主程序.domain.matching import reconcile_rows, MatchingCoverageError
 from 主程序.domain.money import NumericOverflowError
 from 主程序.repositories.database import DatabaseError, database_transaction
+from 主程序.repositories.process_lock import ProcessLockError, database_process_lock
 from 主程序.repositories import reconcile_repository as repository
 from 主程序.repositories.xlsx_reader import InputError
 from 主程序.services.import_service import counts
@@ -50,37 +51,53 @@ def validate_result(result, rows, batch_counts):
             raise InputError("COUNT_MISMATCH")
 
 
-def reconcile(database: Path, batch_id: str, *, fault=None):
-    with database_transaction(database) as c:
-        repository.require_reconcile(c)
-        run_id, attempt, reused = repository.start_run(c, batch_id)
-    if reused:
-        return {**run_summary(database, run_id), "reused": True}
+def reconcile(database: Path, batch_id: str, *, fault=None, context=None):
     try:
-        batch_counts = counts(database, batch_id)
-        with database_transaction(database, readonly=True) as c:
-            rows = repository.read_rows(c, batch_id)
-        result = reconcile_rows(rows)
-        validate_result(result, rows, batch_counts)
-        summary = {**result.summary, "truncation": batch_counts["truncation"], "row_truncation_flags_implemented": False,
-                   "stage": "LOCAL_RECONCILED", "formal_POST_RUNS_implemented": False,
-                   "source_counts": {k: batch_counts[k] for k in ("original_total", "outside_count", "selected_count",
-                                                                "sale_count", "cancel_count", "excluded_count", "delta_original", "delta_selected")}}
-        with database_transaction(database) as c:
-            repository.publish(c, run_id, batch_id, result, summary, fault)
-            payload = {**repository.completed_summary(c, run_id), "reused": False}
-    except Exception as exc:
-        code = ("NUMERIC_OVERFLOW" if isinstance(exc, NumericOverflowError) else "COUNT_MISMATCH" if isinstance(exc, MatchingCoverageError)
-                else exc.code if isinstance(exc, (InputError, DatabaseError)) else "RECONCILE_WRITE_FAILED")
-        details = {"batch_id": batch_id, "run_id": run_id, "attempt": attempt,
-                   "retry_action": "LOCAL_RECONCILE", "formal_POST_RUNS_implemented": False}
-        try:
+        with database_process_lock(database, "shared"):
             with database_transaction(database) as c:
-                repository.fail_run(c, run_id, code)
-        except Exception as failure:
-            raise InputError("AUDIT_WRITE_FAILED", 500, **details, failure_metadata_persisted=False) from failure
-        raise InputError(code, 500, **details, failure_metadata_persisted=True) from exc
-    return payload
+                repository.require_reconcile(c)
+                if context is not None:
+                    context.verify(c)
+                run_id, attempt, reused = repository.start_run(c, batch_id)
+                if reused:
+                    if context is not None:
+                        return {**repository.completed_summary(c, run_id), "reused": True}
+                    return {**run_summary(database, run_id), "reused": True}
+            try:
+                batch_counts = counts(database, batch_id)
+                with database_transaction(database, readonly=True) as c:
+                    rows = repository.read_rows(c, batch_id)
+                result = reconcile_rows(rows)
+                validate_result(result, rows, batch_counts)
+                summary = {**result.summary, "truncation": batch_counts["truncation"], "quality": batch_counts.get("quality", {"status": "UNAVAILABLE", "quality_version": None, "marked_row_count": None}), "row_truncation_flags_implemented": batch_counts.get("quality", {}).get("status") == "VERIFIED",
+                           "stage": "HTTP_RECONCILED" if context is not None else "LOCAL_RECONCILED",
+                           "formal_POST_RUNS_implemented": context is not None,
+                           "source_counts": {k: batch_counts[k] for k in ("original_total", "outside_count", "selected_count",
+                                                                        "sale_count", "cancel_count", "excluded_count", "delta_original", "delta_selected")}}
+                with database_transaction(database) as c:
+                    if context is not None:
+                        context.verify(c)
+                    repository.publish(c, run_id, batch_id, result, summary, fault, context=context)
+                    payload = {**repository.completed_summary(c, run_id), "reused": False}
+            except Exception as exc:
+                code = ("NUMERIC_OVERFLOW" if isinstance(exc, NumericOverflowError) else "COUNT_MISMATCH" if isinstance(exc, MatchingCoverageError)
+                        else exc.code if isinstance(exc, (InputError, DatabaseError)) else "RECONCILE_WRITE_FAILED")
+                details = {"batch_id": batch_id, "run_id": run_id, "attempt": attempt,
+                           "retry_action": "POST_RUNS" if context is not None else "LOCAL_RECONCILE",
+                           "formal_POST_RUNS_implemented": context is not None}
+                try:
+                    with database_transaction(database) as c:
+                        repository.fail_run(c, run_id, code, context=context)
+                except Exception as failure:
+                    raise InputError("AUDIT_WRITE_FAILED", 500, **details, failure_metadata_persisted=False) from failure
+                status = (exc.status if isinstance(exc, InputError) else 503 if code == "DATABASE_BUSY" else 500) if context is not None else 500
+                error = InputError(code, status, **details, failure_metadata_persisted=True)
+                if context is not None:
+                    error.audit_recorded = True
+                raise error from exc
+            return payload
+    except ProcessLockError as exc:
+        raise InputError("DATABASE_LIFECYCLE_LOCK_BUSY", 409) from exc
 
 
 def batch_runs(database: Path, batch_id: str):

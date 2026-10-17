@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VC-R-03 导入阶段验算</title><link rel="stylesheet" href="/static/css/counts.css"></head>
-<body><main><h1>VC-R-03 导入阶段验算</h1><p class="notice">仅限本地只读证据入口。本页保留批次已发布的导入事实，配对结果请另看run摘要；工单、权限系统尚未完成。非商品行保留计数，不参与商品配对。</p>
+<body><main><h1>VC-R-03 导入阶段验算</h1><p class="notice">仅限本地旧版库只读证据入口。本页保留批次已发布的导入事实，配对结果请另看run摘要；未导入或未生成run时，相应导入验算/配对汇总尚未完成，不把缺失结果当作0。非商品行保留计数，不参与商品配对。</p>
 <label for="batch">已成功导入的 batch_id</label><input id="batch" autocomplete="off"><button id="load">读取计数</button><p id="status" role="status"></p>
 <section><h2>两个分母与守恒</h2><div id="totals"></div></section><section><h2>商品与非商品 完整分类</h2><table><thead><tr><th>类别</th><th>原行</th><th>SALE</th><th>CANCEL</th><th>EXCLUDED</th></tr></thead><tbody id="categories"></tbody></table></section>
 <section><h2>取消分母衔接</h2><pre id="coverage"></pre><p>本页是导入时的持久摘要，不用后续配对结果改写历史null；查看run摘要确认该批次是否已对账。商品规则覆盖率不是准确率。</p><div id="runs"></div></section>

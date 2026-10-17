@@ -59,8 +59,12 @@ def expected_objects(version=2):
         c.execute(METADATA_SQL)
         for sql in SCHEMA_SQL:
             c.execute(sql)
-        if version == 3:
+        if version >= 3:
             from 主程序.repositories.reconcile_schema import SCHEMA_V3_SQL
             for sql in SCHEMA_V3_SQL:
                 c.execute(sql)
+        if version == 4:
+            from 主程序.repositories.workflow_schema import migrate_v4
+            c.execute("PRAGMA foreign_keys=ON")
+            migrate_v4(c)
         return c.execute("SELECT name, sql FROM sqlite_schema WHERE name NOT GLOB 'sqlite_*' ORDER BY name").fetchall()

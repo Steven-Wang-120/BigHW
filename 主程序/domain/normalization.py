@@ -172,7 +172,7 @@ def _parse_price_field(raw: object) -> _Parsed:
 # --------------------------------------------------------------------------
 
 
-def classify_row(row: RawRow) -> RowVerdict:
+def classify_row(row: RawRow, *, truncation_flags=frozenset()) -> RowVerdict:
     """Collect independent reasons first, then select the single CR-02 primary."""
     reasons: set[str] = set()
     flags: list[str] = []
@@ -238,6 +238,7 @@ def classify_row(row: RawRow) -> RowVerdict:
         flags.append("NON_PRODUCT")
     ordered = [code for code in EXCLUSION_PRIORITY if code in reasons]
     primary = ordered[0] if ordered else None
+    flags = list(truncation_flags) + flags
     flags = ordered[1:] + flags
     row_class = CLASS_EXCLUDED if primary else CLASS_CANCEL if quantity < 0 else CLASS_SALE
     duplicate_key = ()

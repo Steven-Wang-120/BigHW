@@ -1,4 +1,4 @@
-"""Explicit, non-destructive SQLite bootstrap; business tables are not implemented."""
+"""Explicit, non-destructive SQLite bootstrap and validated v2-v4 schema upgrades."""
 
 from contextlib import contextmanager
 import os
@@ -44,20 +44,21 @@ def connect_database(path: Path, *, readonly: bool = False, busy_timeout_ms: int
 
 def validate_schema(connection: sqlite3.Connection) -> None:
     version = connection.execute("PRAGMA user_version").fetchone()[0]
-    if version > 3:
+    if version > 4:
         raise DatabaseError("SCHEMA_VERSION_UNSUPPORTED")
     application = connection.execute("PRAGMA application_id").fetchone()[0]
     objects = connection.execute(
         "SELECT name, sql FROM sqlite_schema WHERE name NOT GLOB 'sqlite_*' ORDER BY name"
     ).fetchall()
-    if version in {2, 3}:
+    if version in {2, 3, 4}:
         from 主程序.repositories.schema import expected_objects
         expected = expected_objects(version)
-        metadata = [("scope", "business-reconcile" if version == 3 else "business-import"), ("version", str(version))]
+        scope = {2: "business-import", 3: "business-reconcile", 4: "business-workflow"}[version]
+        metadata = [("scope", scope), ("version", str(version))]
     else:
         expected = [("schema_metadata", METADATA_SQL)]
         metadata = METADATA_ROWS
-    if version not in {1, 2, 3} or application != APPLICATION_ID or objects != expected:
+    if version not in {1, 2, 3, 4} or application != APPLICATION_ID or objects != expected:
         raise DatabaseError("SCHEMA_UNRECOGNIZED")
     rows = connection.execute("SELECT key, value FROM schema_metadata ORDER BY key").fetchall()
     if rows != metadata:
@@ -130,8 +131,8 @@ def database_transaction(path: Path, *, readonly: bool = False):
 
 def upgrade_database(path: Path, *, target_version: int = 2) -> bool:
     """Explicit additive upgrades; validate every existing version before writing."""
-    if target_version not in {2, 3}:
-        raise ValueError("target_version must be 2 or 3")
+    if target_version not in {2, 3, 4}:
+        raise ValueError("target_version must be 2, 3 or 4")
     from 主程序.repositories.schema import SCHEMA_SQL
     from 主程序.repositories.reconcile_schema import SCHEMA_V3_SQL
     with database_transaction(path) as connection:
@@ -145,12 +146,19 @@ def upgrade_database(path: Path, *, target_version: int = 2) -> bool:
             connection.execute("UPDATE schema_metadata SET value='2' WHERE key='version'")
             connection.execute("PRAGMA user_version=2")
             validate_schema(connection)
-        if target_version == 3:
+        if version < 3 and target_version >= 3:
             for sql in SCHEMA_V3_SQL:
                 connection.execute(sql)
             connection.execute("UPDATE schema_metadata SET value='business-reconcile' WHERE key='scope'")
             connection.execute("UPDATE schema_metadata SET value='3' WHERE key='version'")
             connection.execute("PRAGMA user_version=3")
+            validate_schema(connection)
+        if target_version == 4:
+            from 主程序.repositories.workflow_schema import migrate_v4
+            migrate_v4(connection)
+            connection.execute("UPDATE schema_metadata SET value='business-workflow' WHERE key='scope'")
+            connection.execute("UPDATE schema_metadata SET value='4' WHERE key='version'")
+            connection.execute("PRAGMA user_version=4")
             validate_schema(connection)
         return True
 
@@ -159,4 +167,4 @@ def database_health(path: Path) -> dict[str, object]:
     with database_transaction(path, readonly=True) as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
         return {"schema_version": version, "foreign_keys": True,
-                "scope": {1: "bootstrap-only", 2: "business-import", 3: "business-reconcile"}[version]}
+                "scope": {1: "bootstrap-only", 2: "business-import", 3: "business-reconcile", 4: "business-workflow"}[version]}

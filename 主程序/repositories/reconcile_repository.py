@@ -13,7 +13,7 @@ from 主程序.repositories.xlsx_reader import InputError
 
 
 def require_reconcile(c):
-    if c.execute("PRAGMA user_version").fetchone()[0] != 3:
+    if c.execute("PRAGMA user_version").fetchone()[0] not in {3, 4}:
         raise InputError("SCHEMA_UPGRADE_REQUIRED", 409)
 
 
@@ -49,7 +49,12 @@ def read_rows(c, batch_id):
                         datetime.fromisoformat(r[11]) if r[11] else None, r[12], tuple(json.loads(r[13])), r[14], bool(r[15]), r[16]) for r in rows]
 
 
-def audit(c, run_id, outcome, code=None, summary=None):
+def audit(c, run_id, outcome, code=None, summary=None, *, context=None):
+    if context is not None:
+        from 主程序.repositories.audit_repository import append
+        append(c, context.actor.id, context.request_id, "reconciliation_run", run_id,
+               "RECONCILE", outcome, code=code, after=summary)
+        return
     try:
         c.execute("INSERT INTO audit_events VALUES (?,?,?,?,?,?,?,?,?,?)",
                   (uuid4().hex, None, run_id, "reconciliation_run", run_id, "RECONCILE", outcome, code, json_text(summary or {}), now()))
@@ -57,7 +62,7 @@ def audit(c, run_id, outcome, code=None, summary=None):
         raise InputError("AUDIT_WRITE_FAILED", 500) from exc
 
 
-def publish(c, run_id, batch_id, result, summary, fault=None):
+def publish(c, run_id, batch_id, result, summary, fault=None, *, context=None):
     ids = {lot.id: hashlib.sha256((run_id + "|" + lot.id).encode()).hexdigest() for lot in result.lots}
     c.executemany("INSERT INTO sale_lots VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                   [(ids[l.id], run_id, batch_id, l.id, l.invoice, l.customer, l.stock, l.price_units,
@@ -71,22 +76,22 @@ def publish(c, run_id, batch_id, result, summary, fault=None):
         candidates = [{**v, "lot_id": ids[v["lot_id"]]} for v in d.candidates]
         records.append((uuid4().hex, run_id, batch_id, d.cancel_id, d.reason, json_text(d.flags), json_text(candidates),
                         d.message, d.quantity, d.amount_units, "UNMATCHED", "PENDING", 0))
-    c.executemany("INSERT INTO differences VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", records)
+    c.executemany("INSERT INTO differences (id,run_id,batch_id,cancel_id,reason,flags_json,candidates_json,message,quantity,amount_units,match_status,work_status,version) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", records)
     if fault:
         fault(c)
     changed = c.execute("UPDATE runs SET status='COMPLETED',summary_json=?,finished_at=? WHERE id=? AND batch_id=? AND status='RUNNING'",
                         (json_text(summary), now(), run_id, batch_id))
     if changed.rowcount != 1:
         raise InputError("RUN_STATE_CONFLICT", 409, run_id=run_id)
-    audit(c, run_id, "SUCCESS", summary=summary)
+    audit(c, run_id, "SUCCESS", summary=summary, context=context)
 
 
-def fail_run(c, run_id, code):
+def fail_run(c, run_id, code, *, context=None):
     changed = c.execute("UPDATE runs SET status='FAILED',summary_json=NULL,error_code=?,finished_at=? WHERE id=? AND status='RUNNING'",
                         (code, now(), run_id))
     if changed.rowcount != 1:
         raise InputError("RUN_STATE_CONFLICT", 409, run_id=run_id)
-    audit(c, run_id, "FAILED", code)
+    audit(c, run_id, "FAILED", code, context=context)
 
 
 def completed_summary(c, run_id):
@@ -95,5 +100,12 @@ def completed_summary(c, run_id):
         raise InputError("RUN_NOT_FOUND", 404)
     if run[5] != "COMPLETED":
         raise InputError("RUN_NOT_READY", 409, run_id=run_id, run_status=run[5])
+    summary = json.loads(run[7])
+    from 主程序.domain.quality import quality_summary
+    manifest = json.loads(c.execute('SELECT manifest_json FROM snapshots WHERE id=?', (run[1],)).fetchone()[0])
+    quality = quality_summary(manifest)
+    # Presentation-only enrichment: never rewrite historical summary_json.
+    if 'quality' in summary and {k: v for k, v in quality.items() if k != 'provided'} != {k: v for k, v in summary['quality'].items() if k != 'provided'}:
+        raise InputError('COUNT_MISMATCH')
     return {"run_id": run_id, "batch_id": run[0], "snapshot_id": run[1], "normalization_version": run[2],
-            "rule_digest": run[3], "rule": json.loads(run[4]), "status": run[5], "attempt": run[6], **json.loads(run[7])}
+            "rule_digest": run[3], "rule": json.loads(run[4]), "status": run[5], "attempt": run[6], **summary, 'quality': quality}
